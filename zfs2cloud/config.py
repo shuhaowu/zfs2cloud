@@ -16,9 +16,9 @@ class Config(object):
       "incremental_strategy": self.SINCE_LAST_FULL,
       "split_size": "1G",
       "rclone_conf": os.environ.get("RCLONE_CONFIG", os.path.join(os.path.expanduser("~"), ".rclone.conf")),
-      "rclone_bwlimit": "-v --stats=60s",
+      "rclone_bwlimit": "",
       "rclone_global_flags": "",
-      "rclone_args": "",
+      "rclone_args": "-v --stats=60s",
       "oldest_snapshot_days": 120,
       "full_every_x_days": 30,
       "on_failure": "",
@@ -76,6 +76,9 @@ class Config(object):
 
     if not os.path.isfile(self.main["rclone_conf"]):
       raise ValueError("rclone_conf: {} is not a valid file".format(self.main["rclone_conf"]))
+
+    if self.main.getint("oldest_snapshot_days") <= self.main.getint("full_every_x_days"):
+      raise ValueError("oldest_snapshot_days must be greater than full_every_x_days so that incremental backups based on the last full backup can take place")
 
     for step in self.backup_sequences:
       if step.startswith("/"):

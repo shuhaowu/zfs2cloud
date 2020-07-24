@@ -2,7 +2,6 @@ from datetime import datetime
 import json
 import os
 import shutil
-import shlex
 
 from .command import Command
 
@@ -31,6 +30,14 @@ class ExportIntermediate(Command):
 
     os.umask(0o77)
     if not full:
+      found = False
+      for snapshot_name, _ in snapshots:
+        if last_full_backup[0] == snapshot_name:
+          found = True
+
+      if not found:
+        raise RuntimeError("last full snapshot deleted? looked for {} but couldn't find it.".format(last_full_backup[0]))
+
       if self.config.main["incremental_strategy"] != self.config.SINCE_LAST_FULL:
         raise NotImplementedError
 
@@ -103,13 +110,15 @@ class PruneIntermediate(Command):
     parser.add_argument("-y", "--yes", action="store_true", default=False, help="actually delete the intermediates instead of just dry run")
 
   def run(self):
-    if not self.args.yes:
-      self.logger.info("in dry-run mode")
+    dry_run = not self.args.yes or self.args.dry_run
+    if dry_run:
+      self.logger.info("in dry run mode")
 
     snapshots = self._discover_snapshots()
 
     if len(snapshots) == 0:
-      raise RuntimeError("cannot prune-intermediate when there are no existing snapshots")
+      self.logger.info("nothing pruned as there are no snapshots")
+      return
     elif len(snapshots) == 1:
       self.logger.info("nothing pruned as there's only a single snapshot")
       return
@@ -130,7 +139,7 @@ class PruneIntermediate(Command):
 
       if fn in possible_folder_names:
         self.logger.info("pruning {}".format(path))
-        if self.args.yes:
+        if not dry_run:
           shutil.rmtree(path)
       else:
         self.logger.debug("ignoring {}".format(path))

@@ -1,51 +1,50 @@
-from contextlib import contextmanager
 import os
-import tempfile
-import textwrap
-import shutil
 
-import unittest
-
-from zfs2cloud.config import Config
+from .test_case import Zfs2CloudTestCase
 
 
-class ConfigTest(unittest.TestCase):
-  def setUp(self):
-    self.config_dir = tempfile.mkdtemp()
-    with open(os.path.join(self.config_dir, "rclone.conf"), "w"):
-      pass
-
-  def teardown(self):
-    shutil.rmtree(self.config_dir)
-
-  @contextmanager
-  def config(self, data):
-    data = textwrap.dedent(data)
-    path = os.path.join(self.config_dir, "config.ini")
-    with open(path, "w") as f:
-      f.write(data)
-
-    yield Config(path)
-
-    os.remove(path)
-
-  def test_backup_sequences_script_paths(self):
+class ConfigTest(Zfs2CloudTestCase):
+  def test_transforms_variables(self):
     data = """\
     [main]
     encryption_passphrase = 123456
     zfs_fs                = data/test
-    intermediate_basedir  = /data/tmp
+    intermediate_basedir  = {}
     remote                = b2:bucket/whatever
     rclone_conf           = ./rclone.conf
 
     [backup_sequences]
     step01 = ./script
-    """
+    """.format(self.intermediate_basedir)
 
     script_path = os.path.join(self.config_dir, "script")
-
     with open(script_path, "w"):
       pass
 
     with self.config(data) as c:
       self.assertEqual(c.backup_sequences, [script_path])
+      self.assertEqual(c.main["rclone_conf"], self.rclone_path)
+
+      self.assertEqual(c.lock_path, os.path.join(self.intermediate_basedir, "_lock"))
+      self.assertEqual(c.last_full_cache_file, os.path.join(self.intermediate_basedir, "_last_full_backup"))
+
+  def test_validate_full_every_and_oldest_snapshot(self):
+    data = """\
+    [main]
+    encryption_passphrase = 123456
+    zfs_fs                = data/test
+    intermediate_basedir  = {}
+    remote                = b2:bucket/whatever
+    rclone_conf           = ./rclone.conf
+    oldest_snapshot_days  = 7
+    full_every_x_days     = 14
+
+    [backup_sequences]
+    step01 = snapshot
+    """.format(self.intermediate_basedir)
+
+    with self.assertRaises(ValueError) as r:
+      with self.config(data):
+        pass
+
+    self.assertEqual(str(r.exception), "oldest_snapshot_days must be greater than full_every_x_days so that incremental backups based on the last full backup can take place")

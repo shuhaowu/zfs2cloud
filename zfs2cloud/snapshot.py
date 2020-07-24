@@ -21,7 +21,8 @@ class PruneSnapshots(Command):
     parser.add_argument("-y", "--yes", action="store_true", default=False, help="actually delete the snapshot instead of just dry run")
 
   def run(self):
-    if not self.args.yes:
+    dry_run = not self.args.yes or self.args.dry_run
+    if dry_run:
       self.logger.info("in dry run mode")
 
     now = datetime.now()
@@ -41,6 +42,6 @@ class PruneSnapshots(Command):
         if command == "zfs destroy {}".format(self.config.main["zfs_fs"]):
           raise RuntimeError("Whoa what")
 
-        self._execute(command, dry_run=not self.args.yes)
+        self._execute(command, dry_run=dry_run)
       else:
         self.logger.debug("ignoring {} as it is only {:.2f} days old".format(snapshot, delta))
