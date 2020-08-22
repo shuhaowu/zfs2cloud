@@ -7,6 +7,7 @@ from .command import ShowConfig, Lock, Unlock
 from .snapshot import Snapshot, PruneSnapshots
 from .intermediate import ExportIntermediate, PruneIntermediate, UploadIntermediateToRemote
 from .perform import Perform
+from .restore import Restore
 
 commands = {
   "show-config": ShowConfig,
@@ -19,6 +20,7 @@ commands = {
   "prune-snapshots": PruneSnapshots,
   "upload-intermediate-to-remote": UploadIntermediateToRemote,
   "perform": Perform,
+  "restore": Restore,
 }
 
 
@@ -49,13 +51,14 @@ def main():
   global_parser.set_defaults(_commands=commands)  # A hack to allow backup-sequences to be validated, and used in Perform
 
   args = global_parser.parse_args()
-  if args.config is None:
-    print("error: must specify --config or ZFS_BACKUP_CONFIG", file=sys.stderr)
-    sys.exit(1)
+  if args.f != Restore.standalone_main:
+    if args.config is None:
+      print("error: must specify --config or ZFS_BACKUP_CONFIG", file=sys.stderr)
+      sys.exit(1)
 
-  if not os.path.isfile(args.config):
-    print("error: {} is not a valid file".format(args.config), file=sys.stderr)
-    sys.exit(1)
+    if not os.path.isfile(args.config):
+      print("error: {} is not a valid file".format(args.config), file=sys.stderr)
+      sys.exit(1)
 
   level = logging.DEBUG if args.verbose else logging.INFO
   logging.basicConfig(format="{asctime} | {name: >12.12} | {levelname:.1} | {message}", datefmt="%Y-%m-%d %H:%M:%S", level=level, style="{")

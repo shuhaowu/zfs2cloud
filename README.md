@@ -45,6 +45,17 @@ System Requirements
 - ZFS, and `zfs` command available (so root, or somehow got the permission)
 - `rclone` (optional)
 
+Restore
+-------
+
+```
+cd /path/to/backup-full
+cat * | pv | gpg --decrypt --batch --passphrase '<passphrase>' | zfs recv <zfs_fs>
+
+cd /path/to/backup-incr
+cat * | pv | gpg --decrypt --batch --passphrase '<passphrase>' | zfs recv <zfs_fs>
+```
+
 Descriptions
 ------------
 
