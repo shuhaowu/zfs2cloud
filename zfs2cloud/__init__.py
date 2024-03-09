@@ -8,6 +8,7 @@ from .snapshot import Snapshot, PruneSnapshots
 from .intermediate import ExportIntermediate, PruneIntermediate, UploadIntermediateToRemote
 from .perform import Perform
 from .restore import Restore
+from .file_mode import MountSnapshot, UploadSnapshotFilesToRemote, UmountSnapshot
 
 commands = {
   "show-config": ShowConfig,
@@ -19,6 +20,9 @@ commands = {
   "prune-intermediates": PruneIntermediate,
   "prune-snapshots": PruneSnapshots,
   "upload-intermediate-to-remote": UploadIntermediateToRemote,
+  "mount-snapshot": MountSnapshot,
+  "upload-snapshot-files-to-remote": UploadSnapshotFilesToRemote,
+  "umount-snapshot": UmountSnapshot,
   "perform": Perform,
   "restore": Restore,
 }

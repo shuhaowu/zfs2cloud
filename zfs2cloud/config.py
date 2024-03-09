@@ -13,6 +13,7 @@ class Config(object):
 
     self.c = ConfigParser(allow_no_value=True)
     self.c["main"] = {
+      "mode": "intermediate",
       "incremental_strategy": self.SINCE_LAST_FULL,
       "split_size": "1G",
       "rclone_conf": os.environ.get("RCLONE_CONFIG", os.path.join(os.path.expanduser("~"), ".rclone.conf")),
@@ -64,9 +65,14 @@ class Config(object):
     self.last_full_cache_file = os.path.join(self.main["intermediate_basedir"], "_last_full_backup")
 
   def validate(self):
-    for k in ["encryption_passphrase", "zfs_fs", "intermediate_basedir", "remote"]:
+    for k in ["zfs_fs", "intermediate_basedir", "remote"]:
       if k not in self.main:
         raise KeyError("{} must be specified in [main]".format(k))
+
+    if self.main["mode"] == "intermediate":
+      for k in ["encryption_passphrase"]:
+        if k not in self.main:
+          raise KeyError("{} must be specified in [main]".format(k))
 
     if not os.path.isdir(self.main["intermediate_basedir"]):
       raise ValueError("intermediate_basedir: {} is not a valid directory".format(self.main["intermediate_basedir"]))

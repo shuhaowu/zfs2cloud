@@ -127,11 +127,10 @@ The way this mode works is as follows:
 
 1. Initially, the ZFS filesystem `fs` has no snapshots. A snapshot is taken and
    named `fs@20240101000000`.
-2. The snapshot `fs@20240101000000` is mounted to a configurable path.
+2. The snapshot `fs@20240101000000` is mounted to a directory within `intermediate_basedir`.
 3. Using rclone, the files within the mounted path can be uploaded to the cloud.
 4. The snapshot is unmounted from the disk.
 5. Snapshot pruning can occur at this point.
-
 
 Note: this mode does not provide the following features out of the box:
 
