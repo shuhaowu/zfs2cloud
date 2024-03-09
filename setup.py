@@ -2,6 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
   name="zfs2cloud",
+  version="1.1.0",
   description="Backup ZFS to the cloud",
   packages=find_packages(),
   test_suite="tests",
