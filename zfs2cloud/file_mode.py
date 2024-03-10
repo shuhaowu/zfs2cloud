@@ -84,3 +84,7 @@ class UploadSnapshotFilesToRemote(Command):
     env = {}
     env["RCLONE_CONFIG"] = self.config.main["rclone_conf"]
     self._execute(command, env=env, dry_run=self.args.dry_run)
+
+    # This will basically mark the remote with a timestamp, like a heartbeat
+    cmd = "rclone touch {}/__zfs2cloud_last_updated__".format(self.config.main["remote"])
+    self._execute(command, env=env, dry_run=self.args.dry_run)
