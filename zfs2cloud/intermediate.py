@@ -51,7 +51,7 @@ class ExportIntermediate(Command):
 
     self._execute("{} -p {}".format("mkdir", snapshot_intermediate_folder_name), dry_run=self.args.dry_run)
 
-    command = "{zfs} send {opts} {current_zfs_name} | gpg1 -c --cipher-algo AES256 --batch --passphrase {key} | split - --bytes {split_size} --suffix-length=4 --numeric-suffixes {fileprefix}".format(
+    command = "{zfs} send {opts} {current_zfs_name} | gpg1 -c --compress-algo none --cipher-algo AES256 --batch --passphrase {key} | split - --bytes {split_size} --suffix-length=4 --numeric-suffixes {fileprefix}".format(
       zfs=self.config.zfs_path,
       opts=opts,
       current_zfs_name=snapshot_to_export,
